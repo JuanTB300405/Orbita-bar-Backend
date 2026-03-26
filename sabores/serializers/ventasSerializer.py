@@ -1,16 +1,20 @@
 from rest_framework import serializers
-from ..models import Ventas, DetallesVentas, Notificaciones
+from ..models import Ventas, DetallesVentas, Notificaciones,Mesa
 from .productosSerializer import ProductosSerializer
 from .detallesVentasSerializer import DetallesVentasSerializer
 from .notificacionesSerializer import NotificacionesSerializer
+from .mesaSerializer import MesaSerializer
 
 class VentasSerializer(serializers.ModelSerializer):
 
     detallesVentas = DetallesVentasSerializer(many=True)
+    mesaId = serializers.PrimaryKeyRelatedField(queryset=Mesa.objects.all(), allow_null=True, required=False)
+    mesa = MesaSerializer(source='mesaId', read_only=True)
+
 
     class Meta:
         model = Ventas
-        fields = ["id", "fecha", "total", "devuelta", "detallesVentas"]
+        fields = ["id", "fecha", "total", "devuelta","mesaId", "mesa", "detallesVentas"]
 
 
     def create(self, validated_data):

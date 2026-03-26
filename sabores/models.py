@@ -119,11 +119,22 @@ class DetallesCompras(models.Model):
 
     def __str__(self):
         return '{} {} {}'.format(self.idcompra, self.idproducto, self.cantidad)
+    
+class Mesa(models.Model):
+    numero = models.CharField(max_length=20, unique=True)
+
+    class Meta:
+        managed = True
+        db_table = 'Mesa'
+
+    def __str__(self):
+        return '{}'.format(self.numero)
 
 class Ventas(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=False)
     devuelta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    mesaId= models.ForeignKey(Mesa, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         managed = True
@@ -247,3 +258,4 @@ class Notificaciones(models.Model):
         
     def __str__(self):
         return '{} {} {} {}'.format(self.productoId, self.mensaje, self.fecha, self.leida)
+    
