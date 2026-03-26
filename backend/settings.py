@@ -134,7 +134,8 @@ dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path)
 
 # SECRET_KEY = os.environ.get('QSABORES_SECRET_KEY')
-DEBUG = os.environ.get('DEBUG') == 'True' # Convierte a booleano si es necesario
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
 
 
 DATABASES = {
