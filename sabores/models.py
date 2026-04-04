@@ -259,3 +259,19 @@ class Notificaciones(models.Model):
     def __str__(self):
         return '{} {} {} {}'.format(self.productoId, self.mensaje, self.fecha, self.leida)
     
+class Deudores(models.Model):
+    nombre = models.CharField(max_length=50)
+    celular = models.CharField(max_length=15)
+    fecha = models.DateTimeField(auto_now_add=True)
+    deuda = models.DecimalField(max_digits=10, decimal_places=2)
+    autorizacion = models.BooleanField(default=False)
+    pagado = models.BooleanField(default=False)
+    
+    class Meta:
+        managed = True
+        db_table = 'deudores'
+        
+    def __str__(self):
+        return '{} {} {} {}'.format(self.id, self.nombre, self.celular, self.deuda)
+    
+ 
