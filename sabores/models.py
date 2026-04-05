@@ -274,4 +274,16 @@ class Deudores(models.Model):
     def __str__(self):
         return '{} {} {} {}'.format(self.id, self.nombre, self.celular, self.deuda)
     
+class IngresosExternos(models.Model):
+    tipoIngreso = models.CharField(max_length=50)
+    ganancia = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        managed = True
+        db_table = 'ingresosExternos'
+        
+    def __str__(self):
+        return '{} {} {} {}'.format(self.id, self.tipoIngreso, self.ganancia, self.fecha)
+    
  
