@@ -5,7 +5,7 @@ class DeudoresSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Deudores
-        fields = ['id', 'nombre', 'celular', 'deuda', 'fecha', 'autorizacion']
+        fields = ['id', 'nombre', 'celular', 'deuda', 'fecha', 'autorizacion', 'pagado']
         read_only_fields = ['id', 'fecha']
 
     def validate_autorizacion(self, value):
