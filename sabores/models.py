@@ -121,14 +121,16 @@ class DetallesCompras(models.Model):
         return '{} {} {}'.format(self.idcompra, self.idproducto, self.cantidad)
     
 class Mesa(models.Model):
-    numero = models.CharField(max_length=20, unique=True)
+    numero= models.CharField(max_length=20, unique=True)
+    capacidad= models.IntegerField(default=0)
+    disponible= models.BooleanField(default=True)
 
     class Meta:
         managed = True
         db_table = 'Mesa'
 
     def __str__(self):
-        return '{}'.format(self.numero)
+        return '{} {} {} {}'.format(self.id,self.numero, self.capacidad, self.disponible)
 
 class Ventas(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)

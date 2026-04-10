@@ -5,6 +5,6 @@ class MesaSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Mesa
-        fields = ["id","numero"]
+        fields = ["id", "numero", "capacidad", "disponible"]
 
     
