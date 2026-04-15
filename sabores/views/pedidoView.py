@@ -21,8 +21,8 @@ class PedidoView(viewsets.ModelViewSet):
     def create(self, request):
         """
         POST /pedidos/
-        Body: { "mesa_id": <id> }
-        Crea el pedido y marca la mesa como no disponible.
+        Body: { "mesa_id": <id>, "productos": [{ "producto_id": <id>, "cantidad": <n> }] }
+        Crea el pedido con los productos iniciales y marca la mesa como no disponible.
         """
         serializer = PedidoSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -34,10 +34,40 @@ class PedidoView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        productos = request.data.get('productos', [])
+        if not productos:
+            return Response(
+                {'error': 'Debes incluir al menos un producto para crear el pedido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         with transaction.atomic():
             pedido = serializer.save()
             mesa.disponible = False
             mesa.save(update_fields=['disponible'])
+
+            total = 0
+            for item in productos:
+                producto_id = item.get('producto_id')
+                cantidad = item.get('cantidad')
+
+                if not producto_id or not cantidad:
+                    raise ValueError('Cada producto debe tener producto_id y cantidad.')
+
+                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, int(cantidad))
+                subtotal = producto.precio * int(cantidad)
+
+                DetallesPedido.objects.create(
+                    pedido=pedido,
+                    producto=producto,
+                    cantidad=int(cantidad),
+                    subtotal=subtotal
+                )
+                total += subtotal
+                NotificacionesSerializer.verificar_tope_minimo(producto)
+
+            pedido.total = total
+            pedido.save(update_fields=['total'])
 
         return Response(PedidoSerializer(pedido).data, status=status.HTTP_201_CREATED)
 
