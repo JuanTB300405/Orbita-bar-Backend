@@ -1,7 +1,7 @@
 from rest_framework import routers
 from django.urls import path,include
 
-from sabores.views import authView, comprasView, productosView, gastosView, proveedoresView, categoriasView, ventasView, notificacionesView, detallesComprasView, informesView, mesaView, deudoresView, ingresosExternosView,dashboardView
+from sabores.views import authView, comprasView, productosView, gastosView, proveedoresView, categoriasView, ventasView, notificacionesView, detallesComprasView, informesView, mesaView, deudoresView, ingresosExternosView, dashboardView, pedidoView
 
 
 router = routers.DefaultRouter()
@@ -18,6 +18,7 @@ router.register(r'informes', informesView.InformesView,'informes')
 router.register(r'mesas', mesaView.MesaView,'mesas')
 router.register(r'deudores', deudoresView.DeudoresView,'deudores')
 router.register(r'ingresosExternos', ingresosExternosView.IngresosExternosView,'ingresosExternos')
+router.register(r'pedidos', pedidoView.PedidoView, 'pedidos')
 
 
 urlpatterns = [
