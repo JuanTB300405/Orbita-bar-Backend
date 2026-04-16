@@ -75,8 +75,8 @@ class PedidoView(viewsets.ModelViewSet):
     def agregar_producto(self, request, pk=None):
         """
         POST /pedidos/{id}/agregar_producto/
-        Body: { "producto_id": <id>, "cantidad": <n> }
-        Descuenta stock y agrega el ítem al pedido.
+        Body: { "productos": [{ "producto_id": <id>, "cantidad": <n> }] }
+        Descuenta stock y agrega los ítems al pedido.
         """
         pedido = self.get_object()
 
@@ -86,35 +86,36 @@ class PedidoView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        producto_id = request.data.get('producto_id')
-        cantidad = request.data.get('cantidad')
-
-        if not producto_id or not cantidad:
+        productos = request.data.get('productos', [])
+        if not productos:
             return Response(
-                {'error': 'producto_id y cantidad son requeridos.'},
+                {'error': 'Debes enviar al menos un producto en el array "productos".'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        cantidad = int(cantidad)
-
         with transaction.atomic():
-            # Reduce stock (valida que haya suficiente)
-            producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, cantidad)
+            total_agregado = 0
+            for item in productos:
+                producto_id = item.get('producto_id')
+                cantidad = item.get('cantidad')
 
-            subtotal = producto.precio * cantidad
-            DetallesPedido.objects.create(
-                pedido=pedido,
-                producto=producto,
-                cantidad=cantidad,
-                subtotal=subtotal
-            )
+                if not producto_id or not cantidad:
+                    raise ValueError('Cada item debe tener producto_id y cantidad.')
 
-            # Recalcula total del pedido
-            pedido.total += subtotal
+                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, int(cantidad))
+                subtotal = producto.precio * int(cantidad)
+
+                DetallesPedido.objects.create(
+                    pedido=pedido,
+                    producto=producto,
+                    cantidad=int(cantidad),
+                    subtotal=subtotal
+                )
+                total_agregado += subtotal
+                NotificacionesSerializer.verificar_tope_minimo(producto)
+
+            pedido.total += total_agregado
             pedido.save(update_fields=['total'])
-
-            # Verifica tope mínimo y genera notificación si aplica
-            NotificacionesSerializer.verificar_tope_minimo(producto)
 
         return Response(PedidoSerializer(pedido).data, status=status.HTTP_200_OK)
 
