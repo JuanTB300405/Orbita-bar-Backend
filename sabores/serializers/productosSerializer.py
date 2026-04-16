@@ -32,7 +32,8 @@ class ProductosSerializer(serializers.ModelSerializer):
             'categoriaid',
             'categoria',
             'proveedorid',
-            'proveedor']
+            'proveedor',
+            'codigoBarras',]
         
 
     def validate(self, data):

@@ -240,6 +240,7 @@ class Productos(SoftDeleteModel):
     topeMin = models.IntegerField()
     proveedorid = models.ForeignKey(Proveedores, models.DO_NOTHING, db_column='proveedorId', related_name="productos")
     categoriaid = models.ForeignKey(Categorias, models.DO_NOTHING, db_column='categoriaId', related_name="productos") 
+    codigoBarras = models.CharField(max_length=50, null=True, blank=True,unique=True)
 
     class Meta:
         managed = True
