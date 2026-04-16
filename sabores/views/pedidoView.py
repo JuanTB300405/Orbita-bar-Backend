@@ -49,20 +49,30 @@ class PedidoView(viewsets.ModelViewSet):
             total = 0
             for item in productos:
                 producto_id = item.get('producto_id')
-                cantidad = item.get('cantidad')
+                cantidad = int(item.get('cantidad', 0))
 
                 if not producto_id or not cantidad:
                     raise ValueError('Cada producto debe tener producto_id y cantidad.')
 
-                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, int(cantidad))
-                subtotal = producto.precio * int(cantidad)
+                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, cantidad)
+                subtotal = producto.precio * cantidad
 
-                DetallesPedido.objects.create(
-                    pedido=pedido,
-                    producto=producto,
-                    cantidad=int(cantidad),
-                    subtotal=subtotal
-                )
+                detalle_existente = DetallesPedido.objects.filter(
+                    pedido=pedido, producto=producto
+                ).first()
+
+                if detalle_existente:
+                    detalle_existente.cantidad += cantidad
+                    detalle_existente.subtotal += subtotal
+                    detalle_existente.save(update_fields=['cantidad', 'subtotal'])
+                else:
+                    DetallesPedido.objects.create(
+                        pedido=pedido,
+                        producto=producto,
+                        cantidad=cantidad,
+                        subtotal=subtotal
+                    )
+
                 total += subtotal
                 NotificacionesSerializer.verificar_tope_minimo(producto)
 
@@ -102,20 +112,30 @@ class PedidoView(viewsets.ModelViewSet):
             total_agregado = 0
             for item in productos:
                 producto_id = item.get('producto_id')
-                cantidad = item.get('cantidad')
+                cantidad = int(item.get('cantidad', 0))
 
                 if not producto_id or not cantidad:
                     raise ValueError('Cada item debe tener producto_id y cantidad.')
 
-                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, int(cantidad))
-                subtotal = producto.precio * int(cantidad)
+                producto = ProductosSerializer.reducir_cantidad_inventario(producto_id, cantidad)
+                subtotal = producto.precio * cantidad
 
-                DetallesPedido.objects.create(
-                    pedido=pedido,
-                    producto=producto,
-                    cantidad=int(cantidad),
-                    subtotal=subtotal
-                )
+                detalle_existente = DetallesPedido.objects.filter(
+                    pedido=pedido, producto=producto
+                ).first()
+
+                if detalle_existente:
+                    detalle_existente.cantidad += cantidad
+                    detalle_existente.subtotal += subtotal
+                    detalle_existente.save(update_fields=['cantidad', 'subtotal'])
+                else:
+                    DetallesPedido.objects.create(
+                        pedido=pedido,
+                        producto=producto,
+                        cantidad=cantidad,
+                        subtotal=subtotal
+                    )
+
                 total_agregado += subtotal
                 NotificacionesSerializer.verificar_tope_minimo(producto)
 
