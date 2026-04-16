@@ -86,10 +86,15 @@ class PedidoView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        productos = request.data.get('productos', [])
+        # Acepta tanto array directo [] como objeto { "productos": [] }
+        if isinstance(request.data, list):
+            productos = request.data
+        else:
+            productos = request.data.get('productos', [])
+
         if not productos:
             return Response(
-                {'error': 'Debes enviar al menos un producto en el array "productos".'},
+                {'error': 'Debes enviar al menos un producto.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
