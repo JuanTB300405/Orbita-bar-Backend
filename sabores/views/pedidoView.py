@@ -21,18 +21,28 @@ class PedidoView(viewsets.ModelViewSet):
     def create(self, request):
         """
         POST /pedidos/
-        Body: { "mesa_id": <id>, "productos": [{ "producto_id": <id>, "cantidad": <n> }] }
-        Crea el pedido con los productos iniciales y marca la mesa como no disponible.
+        Mesa:  { "mesa_id": <id>, "proveniencia": "mesa", "productos": [...] }
+        Web:   { "proveniencia": "web", "productos": [...] }
         """
         serializer = PedidoSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        mesa = serializer.validated_data['mesa']
-        if not mesa.disponible:
-            return Response(
-                {'error': 'La mesa ya tiene un pedido activo.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        proveniencia = serializer.validated_data.get('proveniencia', 'mesa')
+
+        if proveniencia == 'mesa':
+            mesa = serializer.validated_data.get('mesa')
+            if not mesa:
+                return Response(
+                    {'error': 'mesa_id es requerido para pedidos de mesa.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if not mesa.disponible:
+                return Response(
+                    {'error': 'La mesa ya tiene un pedido activo.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            mesa = None
 
         productos = request.data.get('productos', [])
         if not productos:
@@ -43,8 +53,9 @@ class PedidoView(viewsets.ModelViewSet):
 
         with transaction.atomic():
             pedido = serializer.save()
-            mesa.disponible = False
-            mesa.save(update_fields=['disponible'])
+            if mesa:
+                mesa.disponible = False
+                mesa.save(update_fields=['disponible'])
 
             total = 0
             for item in productos:
@@ -215,7 +226,7 @@ class PedidoView(viewsets.ModelViewSet):
             venta = Ventas.objects.create(
                 total=pedido.total,
                 devuelta=devuelta,
-                mesaId=pedido.mesa
+                mesaId=pedido.mesa if pedido.proveniencia == 'mesa' else None
             )
 
             # Copia cada DetallesPedido como DetallesVentas
@@ -227,13 +238,13 @@ class PedidoView(viewsets.ModelViewSet):
                     subtotal=detalle.subtotal
                 )
 
-            # Cierra el pedido y libera la mesa
+            # Cierra el pedido y libera la mesa si aplica
             pedido.estado = 'pagado'
             pedido.save(update_fields=['estado'])
 
-            mesa = pedido.mesa
-            mesa.disponible = True
-            mesa.save(update_fields=['disponible'])
+            if pedido.proveniencia == 'mesa' and pedido.mesa:
+                pedido.mesa.disponible = True
+                pedido.mesa.save(update_fields=['disponible'])
 
         return Response(
             {'mensaje': 'Pago confirmado.', 'venta_id': venta.id},
@@ -262,8 +273,8 @@ class PedidoView(viewsets.ModelViewSet):
             pedido.estado = 'cancelado'
             pedido.save(update_fields=['estado'])
 
-            mesa = pedido.mesa
-            mesa.disponible = True
-            mesa.save(update_fields=['disponible'])
+            if pedido.proveniencia == 'mesa' and pedido.mesa:
+                pedido.mesa.disponible = True
+                pedido.mesa.save(update_fields=['disponible'])
 
         return Response({'mensaje': 'Pedido cancelado.'}, status=status.HTTP_200_OK)

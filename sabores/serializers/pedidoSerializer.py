@@ -17,11 +17,11 @@ class DetallesPedidoSerializer(serializers.ModelSerializer):
 
 class PedidoSerializer(serializers.ModelSerializer):
     mesa_id = serializers.PrimaryKeyRelatedField(
-        queryset=Mesa.objects.all(), write_only=True, source='mesa'
+        queryset=Mesa.objects.all(), write_only=True, source='mesa', required=False, allow_null=True
     )
     mesa = MesaSerializer(read_only=True)
     detalles = DetallesPedidoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Pedido
-        fields = ['id', 'mesa_id', 'mesa', 'estado', 'fecha_creacion', 'total', 'detalles']
+        fields = ['id', 'mesa_id', 'mesa', 'estado', 'fecha_creacion', 'total', 'proveniencia', 'detalles']

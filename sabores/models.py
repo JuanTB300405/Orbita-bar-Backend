@@ -296,10 +296,15 @@ class Pedido(models.Model):
         ('pagado', 'Pagado'),
         ('cancelado', 'Cancelado'),
     ]
-    mesa = models.ForeignKey(Mesa, on_delete=models.PROTECT, related_name='pedidos')
+    PROVENIENCIA_CHOICES = [
+        ('mesa', 'Mesa'),
+        ('web', 'Web'),
+    ]
+    mesa = models.ForeignKey(Mesa, on_delete=models.PROTECT, related_name='pedidos', null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    proveniencia = models.CharField(max_length=10, choices=PROVENIENCIA_CHOICES, default='mesa')
 
     class Meta:
         managed = True
@@ -321,3 +326,28 @@ class DetallesPedido(models.Model):
 
     def __str__(self):
         return '{} {} {}'.format(self.pedido, self.producto, self.cantidad)
+    
+class CierreCaja(models.Model):
+    fecha = models.DateField()
+    hora = models.TimeField()
+    total_ventas= models.DecimalField(max_digits=12, decimal_places=0)
+    total_propinas=  models.DecimalField(max_digits=12,decimal_places=0) #total de las propinas
+    total_descorches= models.DecimalField(max_digits=12, decimal_places=0)#total de los descorches
+    total_otros =  models.DecimalField(max_digits=12, decimal_places=0)#total de otros ingresos
+    total_ingresos= models.DecimalField(max_digits =12, decimal_places=0)#total de ingresos
+    total_gastos = models.DecimalField(max_digits=12, decimal_places=0)#total de gastos
+    total_compras = models.DecimalField(max_digits=12, decimal_places=0)#total de compras
+    total_egresos= models.DecimalField(max_digits=12, decimal_places=0)#total de egresos
+    balance_neto= models.DecimalField(max_digits=12, decimal_places=0)#ingresos - egresos
+    conteo_deudores=models.IntegerField()#numero o conteo de deudores al final del dia
+    deuda_total= models.DecimalField(max_digits=12,decimal_places=0)#deuda total al final del dia
+    num_ventas= models.IntegerField()#conteo de ventas al final del dia
+    
+    class Meta:
+        db_table= 'CierreCaja'
+        ordering= ['-fecha', '-hora']
+        managed= True
+        
+    def __str__(self):return'{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(self.fecha, self.hora, self.total_ventas, self.total_propinas, self.total_descorches, self.total_otros, self.total_ingresos, self.total_gastos, self.total_compras, self.total_egresos, self.balance_neto, self.conteo_deudores, self.deuda_total, self.num_ventas)
+    
+    
