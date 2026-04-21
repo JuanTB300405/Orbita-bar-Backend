@@ -345,7 +345,7 @@ class CierreCaja(models.Model):
     
     class Meta:
         db_table= 'CierreCaja'
-        ordering= ['-fecha', '-hora']
+        ordering= ['-fecha']
         managed= True
         
     def __str__(self):return'{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(self.fecha, self.hora, self.total_ventas, self.total_propinas, self.total_descorches, self.total_otros, self.total_ingresos, self.total_gastos, self.total_compras, self.total_egresos, self.balance_neto, self.conteo_deudores, self.deuda_total, self.num_ventas)
